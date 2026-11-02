@@ -10,7 +10,6 @@ import {cloneTemplate} from "../lib/utils.js";
 export function initTable(settings, onAction) {
     const {tableTemplate, rowTemplate, before = [], after = []} = settings;
     const root = cloneTemplate(tableTemplate);
-    const wrapper = document.createElement('div');
     const elements = {...root.elements};
 
     const insertNamedTemplate = (templateId) => {
@@ -22,14 +21,14 @@ export function initTable(settings, onAction) {
     const header = cloneTemplate('header');
     const filter = cloneTemplate('filter');
     Object.assign(elements, header.elements, filter.elements);
-    root.elements.rows.before(header.container, filter.container);
 
-    const beforeNodes = before.map((templateId) => insertNamedTemplate(templateId, root.container));
+    const beforeNodes = before.map((templateId) => insertNamedTemplate(templateId));
     const afterNodes = after.map((templateId) => insertNamedTemplate(templateId));
 
-    wrapper.append(...beforeNodes, root.container, ...afterNodes);
+    root.container.prepend(...beforeNodes, header.container, filter.container);
+    root.container.append(...afterNodes);
 
-    wrapper.addEventListener('submit', (event) => {
+    root.container.addEventListener('submit', (event) => {
         event.preventDefault();
 
         if (typeof onAction === 'function') {
@@ -37,19 +36,19 @@ export function initTable(settings, onAction) {
         }
     });
 
-    wrapper.addEventListener('input', (event) => {
+    root.container.addEventListener('input', (event) => {
         if (event.target && typeof onAction === 'function') {
             onAction(event.target);
         }
     });
 
-    wrapper.addEventListener('change', (event) => {
+    root.container.addEventListener('change', (event) => {
         if (event.target && typeof onAction === 'function') {
             onAction(event.target);
         }
     });
 
-    wrapper.addEventListener('reset', () => {
+    root.container.addEventListener('reset', () => {
         if (typeof onAction === 'function') {
             requestAnimationFrame(() => onAction(undefined));
         }
@@ -68,5 +67,5 @@ export function initTable(settings, onAction) {
         root.elements.rows.replaceChildren(...nextRows);
     };
 
-    return {container: wrapper, elements, render};
+    return {...root, elements, render};
 }

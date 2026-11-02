@@ -22,6 +22,9 @@ const sampleTable = initTable({
     after: ['pagination']
 }, render);
 
+const appRoot = document.querySelector('#app');
+appRoot.appendChild(sampleTable.container);
+
 let searching = initSearching('search');
 let sorting = initSorting(['date', 'total']);
 let filtering = initFiltering(sampleTable.elements, indexes);
@@ -60,8 +63,5 @@ function render(action) {
 
     sampleTable.render(result);
 }
-
-const appRoot = document.querySelector('#app');
-appRoot.appendChild(sampleTable.container);
 
 render();
