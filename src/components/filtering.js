@@ -1,14 +1,69 @@
-import {createComparison, defaultRules} from "../lib/compare.js";
-
-// @todo: #4.3 — настроить компаратор
-
 export function initFiltering(elements, indexes) {
-    // @todo: #4.1 — заполнить выпадающие списки опциями
+    const sellerOptions = Object.values(indexes?.sellers ?? {});
+    const sellerSelect = elements.searchBySeller;
+
+    if (sellerSelect) {
+        sellerSelect.innerHTML = '<option value="">—</option>' + sellerOptions
+            .map((seller) => `<option value="${seller}">${seller}</option>`)
+            .join('');
+    }
 
     return (data, state, action) => {
-        // @todo: #4.2 — обработать очистку поля
+        if (action && action.name === 'clear') {
+            const {field} = action.dataset || {};
 
-        // @todo: #4.5 — отфильтровать данные используя компаратор
-        return data;
+            if (field === 'date') {
+                elements.searchByDate.value = '';
+            }
+
+            if (field === 'customer') {
+                elements.searchByCustomer.value = '';
+            }
+
+            if (field === 'seller') {
+                elements.searchBySeller.value = '';
+            }
+
+            if (field === 'total') {
+                elements.totalFrom.value = '';
+                elements.totalTo.value = '';
+            }
+        }
+
+        const filters = {
+            date: String(state?.date ?? '').trim().toLowerCase(),
+            customer: String(state?.customer ?? '').trim().toLowerCase(),
+            seller: String(state?.seller ?? '').trim().toLowerCase(),
+            totalFrom: state?.totalFrom === '' || state?.totalFrom === undefined || state?.totalFrom === null
+                ? null
+                : Number(state.totalFrom),
+            totalTo: state?.totalTo === '' || state?.totalTo === undefined || state?.totalTo === null
+                ? null
+                : Number(state.totalTo)
+        };
+
+        return data.filter((item) => {
+            if (filters.date && !String(item.date).toLowerCase().includes(filters.date)) {
+                return false;
+            }
+
+            if (filters.customer && !String(item.customer).toLowerCase().includes(filters.customer)) {
+                return false;
+            }
+
+            if (filters.seller && String(item.seller).toLowerCase() !== filters.seller) {
+                return false;
+            }
+
+            if (filters.totalFrom !== null && !Number.isNaN(filters.totalFrom) && Number(item.total) < filters.totalFrom) {
+                return false;
+            }
+
+            if (filters.totalTo !== null && !Number.isNaN(filters.totalTo) && Number(item.total) > filters.totalTo) {
+                return false;
+            }
+
+            return true;
+        });
     }
 }
