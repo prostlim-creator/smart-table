@@ -1,8 +1,8 @@
 import {rules, createComparison} from "../lib/compare.js";
 
 export function initSearching(searchField) {
-    const comparator = createComparison(['skipNonExistentSourceFields'], [
-        rules.searchMultipleFields(searchField, ['date', 'customer', 'seller', 'total'])
+    const comparator = createComparison([], [
+        rules.searchMultipleFields(searchField, ['date', 'customer', 'seller'])
     ]);
 
     return (data, state, action) => {
