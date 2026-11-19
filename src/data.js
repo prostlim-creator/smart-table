@@ -34,6 +34,8 @@ export function initData() {
     };
 
     const getRecords = async (query, isUpdated = false) => {
+        await getIndexes();
+
         const nextQuery = new URLSearchParams(query).toString();
 
         if (lastQuery === nextQuery && !isUpdated) {
