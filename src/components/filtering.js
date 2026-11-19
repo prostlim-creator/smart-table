@@ -17,33 +17,26 @@ export function initFiltering(elements) {
 
     const applyFiltering = (query, state, action) => {
         if (action && action.name === 'clear') {
-            const {field} = action.dataset || {};
-            if (field === 'date') {
-                elements.searchByDate.value = '';
-                state.date = '';
-            }
-            if (field === 'customer') {
-                elements.searchByCustomer.value = '';
-                state.customer = '';
-            }
-            if (field === 'seller') {
-                elements.searchBySeller.value = '';
-                state.seller = '';
-            }
-            if (field === 'total') {
-                elements.totalFrom.value = '';
-                elements.totalTo.value = '';
-                state.totalFrom = '';
-                state.totalTo = '';
-            }
+            const container = action.closest('.filter-wrapper, .range-inputs');
+            const fields = container?.querySelectorAll('input, select') || [];
+
+            fields.forEach((field) => {
+                field.value = '';
+                if (field.name) {
+                    state[field.name] = '';
+                }
+            });
         }
 
         const filter = {};
-        Object.keys(state).forEach((key) => {
-            if (['date', 'customer', 'seller', 'totalFrom', 'totalTo'].includes(key) && state[key]) {
-                filter[`filter[${key}]`] = state[key];
-            }
-        });
+        const filterContainer = elements.filter;
+        if (filterContainer) {
+            filterContainer.querySelectorAll('input, select').forEach((element) => {
+                if (element.name && element.value) {
+                    filter[`filter[${element.name}]`] = element.value;
+                }
+            });
+        }
 
         return Object.keys(filter).length ? Object.assign({}, query, filter) : query;
     };
