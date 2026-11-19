@@ -1,69 +1,55 @@
-export function initFiltering(elements, indexes) {
-    const sellerOptions = Object.values(indexes?.sellers ?? {});
-    const sellerSelect = elements.searchBySeller;
+export function initFiltering(elements) {
+    const updateIndexes = (elements, indexes) => {
+        Object.keys(indexes).forEach((elementName) => {
+            const element = elements?.[elementName];
+            if (!element) {
+                return;
+            }
 
-    if (sellerSelect) {
-        sellerSelect.innerHTML = '<option value="">—</option>' + sellerOptions
-            .map((seller) => `<option value="${seller}">${seller}</option>`)
-            .join('');
-    }
+            element.append(...Object.values(indexes[elementName]).map((name) => {
+                const option = document.createElement('option');
+                option.textContent = name;
+                option.value = name;
+                return option;
+            }));
+        });
+    };
 
-    return (data, state, action) => {
+    const applyFiltering = (query, state, action) => {
         if (action && action.name === 'clear') {
             const {field} = action.dataset || {};
-
             if (field === 'date') {
                 elements.searchByDate.value = '';
+                state.date = '';
             }
-
             if (field === 'customer') {
                 elements.searchByCustomer.value = '';
+                state.customer = '';
             }
-
             if (field === 'seller') {
                 elements.searchBySeller.value = '';
+                state.seller = '';
             }
-
             if (field === 'total') {
                 elements.totalFrom.value = '';
                 elements.totalTo.value = '';
+                state.totalFrom = '';
+                state.totalTo = '';
             }
         }
 
-        const filters = {
-            date: String(state?.date ?? '').trim().toLowerCase(),
-            customer: String(state?.customer ?? '').trim().toLowerCase(),
-            seller: String(state?.seller ?? '').trim().toLowerCase(),
-            totalFrom: state?.totalFrom === '' || state?.totalFrom === undefined || state?.totalFrom === null
-                ? null
-                : Number(state.totalFrom),
-            totalTo: state?.totalTo === '' || state?.totalTo === undefined || state?.totalTo === null
-                ? null
-                : Number(state.totalTo)
-        };
-
-        return data.filter((item) => {
-            if (filters.date && !String(item.date).toLowerCase().includes(filters.date)) {
-                return false;
+        const filter = {};
+        Object.keys(state).forEach((key) => {
+            if (['date', 'customer', 'seller', 'totalFrom', 'totalTo'].includes(key) && state[key]) {
+                filter[`filter[${key}]`] = state[key];
             }
-
-            if (filters.customer && !String(item.customer).toLowerCase().includes(filters.customer)) {
-                return false;
-            }
-
-            if (filters.seller && String(item.seller).toLowerCase() !== filters.seller) {
-                return false;
-            }
-
-            if (filters.totalFrom !== null && !Number.isNaN(filters.totalFrom) && Number(item.total) < filters.totalFrom) {
-                return false;
-            }
-
-            if (filters.totalTo !== null && !Number.isNaN(filters.totalTo) && Number(item.total) > filters.totalTo) {
-                return false;
-            }
-
-            return true;
         });
-    }
+
+        return Object.keys(filter).length ? Object.assign({}, query, filter) : query;
+    };
+
+    return {
+        updateIndexes,
+        applyFiltering
+    };
 }
